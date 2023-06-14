@@ -6,7 +6,7 @@ const bodyparser = require("body-parser");
 app.use(bodyparser.json());
 
 const jwt = require("jsonwebtoken");
-const jwt_pass="webfuiwebfuiwebfiuwebfuuqbqiwl";
+const jwt_pass = "webfuiwebfuiwebfiuwebfuuqbqiwl";
 const mongoose = require("mongoose");
 const user = require("./user");
 
@@ -47,24 +47,40 @@ app.post("/userRegistration", (req, res) => {
 app.post("/login", async (req, res) => {
   try {
     const { Email, Password } = req.body;
-    const login = await user.find({ Email: Email });
+    const login = await user.findOne({ Email: Email });
+
+    if (!login) {
+      return res.status(401).send({
+        success: false,
+        message: "Invalid email or password",
+      });
+    }
+
+    if (login.Password !== Password) {
+      return res.status(401).send({
+        success: false,
+        message: "Invalid email or password",
+      });
+    }
+
     const token = jwt.sign(
       {
-        username: login[0].Email,
+        username: login.Email,
       },
       jwt_pass,
       { expiresIn: "4h" }
     );
+
     res.status(200).send({
       success: true,
-      message: "Login Successfully",
+      message: "Login successfully",
       data: token,
     });
   } catch (error) {
     console.log(error);
     res.status(500).send({
       success: false,
-      message: "Server Error",
+      message: "Server error",
     });
   }
 });
